@@ -51,3 +51,11 @@ rs.add("mongo3")
 ### Fund Bee node using the Swarm Goerli Faucet
 
 Follow this guide: https://docs.ethswarm.org/docs/installation/docker#docker-compose
+
+## Project Build
+
+TO-DO
+
+## Usage
+
+TO-DO

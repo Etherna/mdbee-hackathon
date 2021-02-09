@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Etherna.MDBeeDfs</RootNamespace>
+    
+	  <LangVersion>9.0</LangVersion>
+	  <Nullable>enable</Nullable>
+	  <EnableNETAnalyzers>true</EnableNETAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FairOSDfsClient\FairOSDfsClient.csproj" />
+    <ProjectReference Include="..\MongoDBSyncer\MongoDBSyncer.csproj" />
+  </ItemGroup>
+
+</Project>
