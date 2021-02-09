@@ -1,0 +1,124 @@
+version: "3"
+services:
+
+  # Swarm Bee
+  bee:
+    hostname: bee
+    image: ethersphere/bee:beta
+    restart: unless-stopped
+    environment:
+      - BEE_API_ADDR
+      - BEE_BOOTNODE
+      - BEE_CLEF_SIGNER_ENABLE
+      - BEE_CLEF_SIGNER_ENDPOINT
+      - BEE_CONFIG
+      - BEE_CORS_ALLOWED_ORIGINS
+      - BEE_DATA_DIR
+      - BEE_DB_CAPACITY
+      - BEE_DEBUG_API_ADDR
+      - BEE_DEBUG_API_ENABLE
+      - BEE_GATEWAY_MODE
+      - BEE_GLOBAL_PINNING_ENABLE
+      - BEE_NAT_ADDR
+      - BEE_NETWORK_ID
+      - BEE_P2P_ADDR
+      - BEE_P2P_QUIC_ENABLE
+      - BEE_P2P_WS_ENABLE
+      - BEE_PASSWORD
+      - BEE_PASSWORD_FILE
+      - BEE_PAYMENT_EARLY
+      - BEE_PAYMENT_THRESHOLD
+      - BEE_PAYMENT_TOLERANCE
+      - BEE_RESOLVER_OPTIONS
+      - BEE_STANDALONE
+      - BEE_SWAP_ENABLE
+      - BEE_SWAP_ENDPOINT
+      - BEE_SWAP_FACTORY_ADDRESS
+      - BEE_SWAP_INITIAL_DEPOSIT
+      - BEE_TRACING_ENABLE
+      - BEE_TRACING_ENDPOINT
+      - BEE_TRACING_SERVICE_NAME
+      - BEE_VERBOSITY
+      - BEE_WELCOME_MESSAGE
+    ports:
+      - "${API_ADDR:-1633}${BEE_API_ADDR:-:1633}"
+      - "${P2P_ADDR:-1634}${BEE_P2P_ADDR:-:1634}"
+      - "${DEBUG_API_ADDR:-127.0.0.1:1635}${BEE_DEBUG_API_ADDR:-:1635}"
+    volumes:
+      - ./data/bee:/home/bee/.bee
+    command: start
+    networks:
+      - bee-net
+
+  # FairOS-dfs
+  dfs:
+    hostname: dfs
+    image: golang:1.15
+    build:
+      context: ./fairOS-dfs
+    volumes:
+      - ./data/dfs:/go/fairOS-dfs/dist/data
+    depends_on:
+      - bee
+    restart: unless-stopped
+    ports:
+      - 9090:9090
+    networks:
+      - bee-net
+    entrypoint: [ "/go/fairOS-dfs/dist/dfs", "server", "--beeHost", "bee", "--beePort", "1633", "--dataDir", "/go/fairOS-dfs/dist/data" ]
+
+  # FairOS-dfs-cli
+  dfs-cli:
+    image: golang:1.15
+    build:
+      context: ./fairOS-dfs
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - bee-net
+    entrypoint: [ "/go/fairOS-dfs/dist/dfs-cli", "--fdfsHost", "dfs" ]
+
+  # Mongo replica set
+  mongo1:
+    hostname: mongo1
+    image: mongo:4.4
+    volumes:
+      - ./data/mongo1/db:/data/db
+      - ./data/mongo1/configdb:/data/configdb
+    networks:
+      - mongo-net
+    ports:
+      - 127.0.10.1:27017:27017
+    restart: unless-stopped
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "devrs" ]
+
+  mongo2:
+    hostname: mongo2
+    image: mongo:4.4
+    volumes:
+      - ./data/mongo2/db:/data/db
+      - ./data/mongo2/configdb:/data/configdb
+    networks:
+      - mongo-net
+    ports:
+      - 127.0.10.2:27017:27017
+    restart: unless-stopped
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "devrs" ]
+
+  mongo3:
+    hostname: mongo3
+    image: mongo:4.4
+    volumes:
+      - ./data/mongo3/db:/data/db
+      - ./data/mongo3/configdb:/data/configdb
+    networks:
+      - mongo-net
+    ports:
+      - 127.0.10.3:27017:27017
+    restart: unless-stopped
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "devrs" ]
+
+networks:
+  bee-net:
+  mongo-net:
