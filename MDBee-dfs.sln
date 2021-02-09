@@ -20,6 +20,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FairOSDfsClient", "src\Fair
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoDBSyncer", "src\MongoDBSyncer\MongoDBSyncer.csproj", "{B1232B16-231E-4AB8-9040-ADD8242F1C94}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "devenv", "devenv", "{2FE101D2-4338-46C2-8608-C4A83DBC7913}"
+	ProjectSection(SolutionItems) = preProject
+		devenv\.env = devenv\.env
+		devenv\.gitignore = devenv\.gitignore
+		devenv\docker-compose.yml = devenv\docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fairOS-dfs", "fairOS-dfs", "{C04E02C2-0481-4F89-A6B7-F2D6436FAF25}"
+	ProjectSection(SolutionItems) = preProject
+		devenv\fairOS-dfs\Dockerfile = devenv\fairOS-dfs\Dockerfile
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +58,8 @@ Global
 		{57B47905-FFFE-4C75-BE5D-81E3BD023874} = {77C5B403-5A86-48F0-AA94-A4DAA3B36FDD}
 		{7154B1BE-5251-484B-9E77-2854DF24103F} = {77C5B403-5A86-48F0-AA94-A4DAA3B36FDD}
 		{B1232B16-231E-4AB8-9040-ADD8242F1C94} = {77C5B403-5A86-48F0-AA94-A4DAA3B36FDD}
+		{2FE101D2-4338-46C2-8608-C4A83DBC7913} = {8CA16886-5C1C-44C6-A0C6-99F1CA1B3CDC}
+		{C04E02C2-0481-4F89-A6B7-F2D6436FAF25} = {2FE101D2-4338-46C2-8608-C4A83DBC7913}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2549D0B8-5C06-4034-8F72-4683E34768C4}

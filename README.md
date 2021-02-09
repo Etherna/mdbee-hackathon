@@ -17,7 +17,7 @@ In these cases, and if the scope is to make completely transparent our data main
 Environment has been built with `docker-compose`. It's started with these commands:
 
 ```
-cd dfs-devenv
+cd devenv
 docker-compose up -d
 ```
 

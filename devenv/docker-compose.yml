@@ -4,7 +4,7 @@ services:
   # Swarm Bee
   bee:
     hostname: bee
-    image: ethersphere/bee:beta
+    image: ethersphere/bee:0.5.0
     restart: unless-stopped
     environment:
       - BEE_API_ADDR
@@ -52,11 +52,10 @@ services:
 
   # FairOS-dfs
   dfs-server:
-    hostname: dfs
-    image: golang:1.15
+    hostname: dfs-server
+    image: dfs
     build:
       context: ./fairOS-dfs
-    image: dfs
     volumes:
       - ./data/dfs:/go/fairOS-dfs/dist/data
     depends_on:
@@ -76,7 +75,7 @@ services:
     restart: unless-stopped
     networks:
       - bee-net
-    entrypoint: [ "/go/fairOS-dfs/dist/dfs-cli", "--fdfsHost", "dfs" ]
+    entrypoint: [ "/go/fairOS-dfs/dist/dfs-cli", "--fdfsHost", "dfs-server" ]
 
   # Mongo replica set
   mongo1:
