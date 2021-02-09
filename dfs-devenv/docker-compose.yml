@@ -51,11 +51,12 @@ services:
       - bee-net
 
   # FairOS-dfs
-  dfs:
+  dfs-server:
     hostname: dfs
     image: golang:1.15
     build:
       context: ./fairOS-dfs
+    image: dfs
     volumes:
       - ./data/dfs:/go/fairOS-dfs/dist/data
     depends_on:
@@ -69,9 +70,7 @@ services:
 
   # FairOS-dfs-cli
   dfs-cli:
-    image: golang:1.15
-    build:
-      context: ./fairOS-dfs
+    image: dfs
     stdin_open: true
     tty: true
     restart: unless-stopped
