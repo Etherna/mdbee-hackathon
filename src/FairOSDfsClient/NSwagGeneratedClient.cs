@@ -18,12 +18,12 @@ namespace Etherna.FairOSDfsClient
     using System = global::System;
     
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.10.2.0 (NJsonSchema v10.3.4.0 (Newtonsoft.Json v12.0.0.0))")]
-    public partial class FairOSDfsClient 
+    public partial class DfsClient 
     {
         private string _baseUrl = "http://{apiRoot}:{port}/v0";
         private System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings;
     
-        public FairOSDfsClient()
+        public DfsClient()
         {
             _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings);
         }
