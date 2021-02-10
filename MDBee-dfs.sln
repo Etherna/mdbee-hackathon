@@ -16,13 +16,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{77C5B403-5A86-48F0-AA94-A4DAA3B36FDD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FairOSDfsClient", "src\FairOSDfsClient\FairOSDfsClient.csproj", "{7154B1BE-5251-484B-9E77-2854DF24103F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FairOSDfsClient", "src\FairOSDfsClient\FairOSDfsClient.csproj", "{7154B1BE-5251-484B-9E77-2854DF24103F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoDBSyncer", "src\MongoDBSyncer\MongoDBSyncer.csproj", "{B1232B16-231E-4AB8-9040-ADD8242F1C94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MongoDBSyncer", "src\MongoDBSyncer\MongoDBSyncer.csproj", "{B1232B16-231E-4AB8-9040-ADD8242F1C94}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "devenv", "devenv", "{2FE101D2-4338-46C2-8608-C4A83DBC7913}"
 	ProjectSection(SolutionItems) = preProject
-		devenv\.env = devenv\.env
 		devenv\.gitignore = devenv\.gitignore
 		devenv\docker-compose.yml = devenv\docker-compose.yml
 	EndProjectSection
