@@ -15,4 +15,10 @@
     <ProjectReference Include="..\MongoDBSyncer\MongoDBSyncer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Resources\bip39english.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

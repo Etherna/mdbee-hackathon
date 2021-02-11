@@ -59,3 +59,7 @@ TO-DO
 ## Usage
 
 TO-DO
+
+## How it works
+
+TO-DO

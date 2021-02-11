@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MDBee-dfs": {
+      "commandName": "Project",
+      "commandLineArgs": "-p password -m mongoUrl -f http://localhost:9090/v0/ -d dbName"
+    }
+  }
+}

@@ -12,10 +12,15 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Etherna.FairOSDfsClient;
 using Etherna.MongoDBSyncer;
 using Etherna.MongoDBSyncer.EventArgs;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Etherna.MDBeeDfs
 {
@@ -33,7 +38,7 @@ namespace Etherna.MDBeeDfs
             "-h\tPrint help\n";
 
         // Methods.
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             // Parse arguments.
             string? databaseName = null;
@@ -57,7 +62,7 @@ namespace Etherna.MDBeeDfs
 
             // Request Dfs credentials.
             Console.WriteLine("Dfs username:");
-            ReadStringIfEmpty(ref username);
+            username = ReadStringIfEmpty(username);
 
             Console.WriteLine();
             Console.WriteLine("Dfs password:");
@@ -86,23 +91,58 @@ namespace Etherna.MDBeeDfs
             // Request connection urls.
             Console.WriteLine();
             Console.WriteLine("MongoDB connection url:");
-            ReadStringIfEmpty(ref mongoUrl);
+            mongoUrl = ReadStringIfEmpty(mongoUrl);
 
             Console.WriteLine();
             Console.WriteLine("FairOS-dfs server url:");
-            ReadStringIfEmpty(ref dfsUrl);
+            dfsUrl = ReadStringIfEmpty(dfsUrl);
 
             // Request sync config.
             Console.WriteLine();
             Console.WriteLine("Syncing database name:");
-            ReadStringIfEmpty(ref databaseName);
+            databaseName = ReadStringIfEmpty(databaseName);
 
             Console.WriteLine();
 
             // Create Dfs client.
-            var client = new FairOSDfsClient.DfsClient();
+            var httpClient = new HttpClient();
+            var dfsClient = new DfsClient(httpClient)
+            {
+                BaseUrl = dfsUrl
+            };
 
             // Login user with Dfs.
+            if ((await dfsClient.UserPresentAsync(username)).Present)
+            {
+                var response = await dfsClient.UserLoginAsync(new Body
+                {
+                    User = username,
+                    Password = password
+                });
+
+                if (response.StatusCode == 200)
+                    Console.WriteLine($"User {username} loggedin");
+                else
+                {
+                    Console.WriteLine("Invalid Dfs login");
+                    throw new UnauthorizedAccessException();
+                }
+            }
+            else
+            {
+                var response = await dfsClient.UserSignupAsync(
+                    username,
+                    password);
+
+                Console.WriteLine($"New user {username} created with address {response.Address}.");
+                Console.WriteLine("Please store the following 12 words safely");
+                Console.WriteLine("=============== Mnemonic ==========================");
+                Console.WriteLine(response.Mnemonic);
+                Console.WriteLine("=============== Mnemonic ==========================");
+            }
+
+            // Create pod for db.
+            //***TODO
 
             // Start sync process.
             var syncProcessor = new MongoDBSyncProcessor(mongoUrl!, databaseName!);
@@ -130,7 +170,26 @@ namespace Etherna.MDBeeDfs
         }
 
         // Private helpers.
-        private static void ReadStringIfEmpty(ref string? strValue)
+        private static string GenerateMnemonic()
+        {
+            // Load words.
+            var stream = File.OpenText(@"Resources\bip39english.txt");
+            var words = new List<string>();
+            while (!stream.EndOfStream)
+                words.Add(stream.ReadLine()!);
+
+            // Select 12 words.
+            var selectedWords = new List<string>();
+            var rand = new Random();
+            for (int i = 0; i < 12; i++)
+                selectedWords.Add(words[rand.Next(0, words.Count)]);
+
+            // Result.
+            var mnemonic = string.Join(' ', selectedWords);
+            return mnemonic;
+        }
+
+        private static string ReadStringIfEmpty(string? strValue)
         {
             if (string.IsNullOrWhiteSpace(strValue))
             {
@@ -142,6 +201,8 @@ namespace Etherna.MDBeeDfs
                 }
             }
             else Console.WriteLine(strValue);
+
+            return strValue;
         }
     }
 }
