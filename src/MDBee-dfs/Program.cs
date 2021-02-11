@@ -18,6 +18,8 @@ using Etherna.MongoDBSyncer.EventArgs;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -105,23 +107,22 @@ namespace Etherna.MDBeeDfs
             Console.WriteLine();
 
             // Create Dfs client.
-            var httpClient = new HttpClient();
-            var dfsClient = new DfsClient(httpClient)
-            {
-                BaseUrl = dfsUrl
-            };
+            var cookieContainer = new CookieContainer();
+            var handler = new HttpClientHandler() { CookieContainer = cookieContainer } ;
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri(dfsUrl) } ;
+
+            var dfsClient = new DfsClient(httpClient);
 
             // Login user with Dfs.
             if ((await dfsClient.UserPresentAsync(username)).Present)
             {
-                var response = await dfsClient.UserLoginAsync(new Body
-                {
-                    User = username,
-                    Password = password
-                });
+                var response = await dfsClient.UserLoginAsync(username, password);
+                TrySetCookies(dfsUrl, cookieContainer, response.Headers.ToDictionary(p => p.Key, p => p.Value));
 
                 if (response.StatusCode == 200)
+                {
                     Console.WriteLine($"User {username} loggedin");
+                }
                 else
                 {
                     Console.WriteLine("Invalid Dfs login");
@@ -142,6 +143,7 @@ namespace Etherna.MDBeeDfs
             }
 
             // Create pod for db.
+            var newPodResponse = await dfsClient.PodNewAsync(databaseName, password);
             //***TODO
 
             // Start sync process.
@@ -203,6 +205,26 @@ namespace Etherna.MDBeeDfs
             else Console.WriteLine(strValue);
 
             return strValue;
+        }
+
+        private static void TrySetCookies(
+            string host,
+            CookieContainer cookieContainer,
+            IDictionary<string, IEnumerable<string>> responseHeaders)
+        {
+            if (responseHeaders.TryGetValue("Set-Cookie", out var cookies))
+                foreach (var cookie in cookies)
+                {
+                    // Purify cookie.
+                    //from domain field. See https://github.com/fairDataSociety/fairOS-dfs/issues/52
+                    var cookieParts = cookie.Split(';');
+                    var cookieSafeParts = cookieParts.Where(cp => !cp.Contains("Domain="));
+
+                    var fixedCookie = cookieSafeParts.First(); //string.Join(';', cookieSafeParts);
+
+                    // Set cookie.
+                    cookieContainer.SetCookies(new Uri(host), fixedCookie);
+                }
         }
     }
 }

@@ -5,7 +5,7 @@ This project has been developed for the **Liberate Data Week** event, an [hackat
 We want to implement a tool inspired to [MDBee](https://github.com/Etherna/mdbee) using the framework [fairOS-dfs](https://github.com/fairDataSociety/fairOS-dfs). There are some differences from the original paper, due to use of this different framework.  
 All the code is original and developed into the hackathon time frame.
 
-This tool synchronizes an existing instance of a MongoDB Replica Set over Swarm, publishing the data to the net with public pods and permitting users to access and monitor it in real-time.
+This tool synchronizes an existing instance of a MongoDB Replica Set over Swarm, publishing the data to the net with public pods and permitting users to access, monitor and consume it in real-time.
 
 Different reasons exist for have to maintain a centralized control over data. For example because we have to maintain a moderated environment for a public service (totally uncensored web3 can have GREAT pros, but also some cons), or because we want to make full transparent the management of an existing application.  
 After all, decentralization can be achieved in many ways where there are **transparency**, **full awareness** and **free consensus**.
