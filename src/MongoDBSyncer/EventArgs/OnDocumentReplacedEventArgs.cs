@@ -9,13 +9,16 @@ namespace Etherna.MongoDBSyncer.EventArgs
     {
         public OnDocumentReplacedEventArgs(
             BsonElement docId,
-            BsonDocument newDocument)
+            BsonDocument newDocument,
+            long opLogNumber)
         {
             DocId = docId;
             NewDocument = newDocument;
+            OpLogNumber = opLogNumber;
         }
 
         public BsonElement DocId { get; }
         public BsonDocument NewDocument { get; }
+        public long OpLogNumber { get; }
     }
 }
