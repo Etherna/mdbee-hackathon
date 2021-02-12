@@ -1,6 +1,21 @@
-﻿using Etherna.FairOSDfsClient;
+﻿//   Copyright 2021 Etherna Sagl
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
+using Etherna.FairOSDfsClient;
 using Etherna.MongoDBSyncer;
 using Etherna.MongoDBSyncer.EventArgs;
+using MongoDB.Bson;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -111,21 +126,21 @@ namespace Etherna.MDBeeDfs
             var kvOpenResponse = await dfsClient.KvOpenAsync(DbInfoTableName);
 
             // Get current sync state.
-            var lastOpLog = -1;
+            BsonTimestamp? lastOpLogTimestamp = null;
             try
             {
                 var lastOpLogResponse = await dfsClient.KvEntryGetAsync(DbInfoTableName, LastOpLogKeyName);
-                lastOpLog = int.Parse(Base64Decode(lastOpLogResponse.Result.Values));
+                lastOpLogTimestamp = new BsonTimestamp(long.Parse(Base64Decode(lastOpLogResponse.Result.Values)));
             }
             catch { }
 
             Console.WriteLine();
-            Console.WriteLine(lastOpLog >= 0 ?
-                $"Last synced oplog: {lastOpLog}" :
+            Console.WriteLine(lastOpLogTimestamp is not null ?
+                $"Last synced oplog: {lastOpLogTimestamp}" :
                 "No oplog found, start synchronization from scratch");
 
             // Start sync process.
-            var syncProcessor = new MongoDBSyncProcessor(mongoUrl, databaseName, lastOpLog);
+            var syncProcessor = new MongoDBSyncProcessor(mongoUrl, databaseName, lastOpLogTimestamp);
             syncProcessor.OnDocumentInserted += OnDocumentInserted;
             syncProcessor.OnDocumentRemoved += OnDocumentRemoved;
             syncProcessor.OnDocumentReplaced += OnDocumentReplaced;
@@ -140,7 +155,7 @@ namespace Etherna.MDBeeDfs
             //***TO-DO
 
             // Update sync state.
-            await UpdateOpLogNumber(e.OpLogNumber);
+            await UpdateOpLogNumber(e.OpLogTimestamp.Value);
         }).Wait();
 
         private void OnDocumentRemoved(object? sender, OnDocumentRemovedEventArgs e) => Task.Run(async () =>
@@ -149,7 +164,7 @@ namespace Etherna.MDBeeDfs
             //***TO-DO
 
             // Update sync state.
-            await UpdateOpLogNumber(e.OpLogNumber);
+            await UpdateOpLogNumber(e.OpLogTimestamp.Value);
         }).Wait();
 
         private void OnDocumentReplaced(object? sender, OnDocumentReplacedEventArgs e) => Task.Run(async () =>
@@ -158,7 +173,7 @@ namespace Etherna.MDBeeDfs
             //***TO-DO
 
             // Update sync state.
-            await UpdateOpLogNumber(e.OpLogNumber);
+            await UpdateOpLogNumber(e.OpLogTimestamp.Value);
         }).Wait();
 
         // Private helpers.

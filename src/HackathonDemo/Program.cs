@@ -12,24 +12,15 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using MongoDB.Bson;
+using System;
 
-namespace Etherna.MongoDBSyncer.EventArgs
+namespace Etherna.HackathonDemo
 {
-    public class OnDocumentRemovedEventArgs
+    class Program
     {
-        public OnDocumentRemovedEventArgs(
-            string dbName,
-            BsonElement docId,
-            BsonTimestamp opLogTimestamp)
+        static void Main(string[] args)
         {
-            DbName = dbName;
-            DocId = docId;
-            OpLogTimestamp = opLogTimestamp;
+            Console.WriteLine("Hello World!");
         }
-
-        public string DbName { get; }
-        public BsonElement DocId { get; }
-        public BsonTimestamp OpLogTimestamp { get; }
     }
 }

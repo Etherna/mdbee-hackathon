@@ -12,24 +12,15 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-using MongoDB.Bson;
-
 namespace Etherna.MongoDBSyncer.EventArgs
 {
-    public class OnDocumentRemovedEventArgs
+    public class OnRebuildPodEventArgs
     {
-        public OnDocumentRemovedEventArgs(
-            string dbName,
-            BsonElement docId,
-            BsonTimestamp opLogTimestamp)
+        public OnRebuildPodEventArgs(string dbName)
         {
             DbName = dbName;
-            DocId = docId;
-            OpLogTimestamp = opLogTimestamp;
         }
 
         public string DbName { get; }
-        public BsonElement DocId { get; }
-        public BsonTimestamp OpLogTimestamp { get; }
     }
 }

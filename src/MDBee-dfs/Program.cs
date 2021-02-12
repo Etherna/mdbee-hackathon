@@ -25,7 +25,7 @@ namespace Etherna.MDBeeDfs
             "MDBee-dfs help:\n\n" +
             "-u\tDfs username\n" +
             "-p\tDfs password\n" +
-            "-m\tMongoDB URL\n" +
+            "-m\tMongoDB connection string\n" +
             "-f\tFairOS-dfs server URL\n" +
             "-d\tDatabase name\n" +
             "\n" +
@@ -37,7 +37,7 @@ namespace Etherna.MDBeeDfs
             // Parse arguments.
             string? databaseName = null;
             string? dfsUrl = null;
-            string? mongoUrl = null;
+            string? mongoString = null;
             string? password = null;
             string? username = null;
             for (int i = 0; i < args.Length; i++)
@@ -46,7 +46,7 @@ namespace Etherna.MDBeeDfs
                 {
                     case "-d": databaseName = args[++i]; break;
                     case "-f": dfsUrl = args[++i]; break;
-                    case "-m": mongoUrl = args[++i]; break;
+                    case "-m": mongoString = args[++i]; break;
                     case "-p": password = args[++i]; break;
                     case "-u": username = args[++i]; break;
                     case "-h": Console.Write(HelpText); return;
@@ -88,8 +88,8 @@ namespace Etherna.MDBeeDfs
             dfsUrl = ReadStringIfEmpty(dfsUrl);
 
             Console.WriteLine();
-            Console.WriteLine("MongoDB connection url:");
-            mongoUrl = ReadStringIfEmpty(mongoUrl);
+            Console.WriteLine("MongoDB connection string:");
+            mongoString = ReadStringIfEmpty(mongoString);
 
             // Request sync config.
             Console.WriteLine();
@@ -97,7 +97,7 @@ namespace Etherna.MDBeeDfs
             databaseName = ReadStringIfEmpty(databaseName);
 
             // Start job.
-            var dbSyncronizer = new DbSyncronizer(username, password, dfsUrl, mongoUrl, databaseName);
+            var dbSyncronizer = new DbSyncronizer(username, password, dfsUrl, mongoString, databaseName);
             await dbSyncronizer.StartAsync();
         }
 
