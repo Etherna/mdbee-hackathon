@@ -29,7 +29,8 @@ namespace Etherna.MDBeeDfs
     class Program
     {
         // Consts.
-        const string HelpText =
+        private const string DbInfoTableName = "db_info";
+        private const string HelpText =
             "MDBee-dfs help:\n\n" +
             "-u\tDfs username\n" +
             "-p\tDfs password\n" +
@@ -38,6 +39,7 @@ namespace Etherna.MDBeeDfs
             "-d\tDatabase name\n" +
             "\n" +
             "-h\tPrint help\n";
+        private const string LastOpLogKeyName = "last_oplog";
 
         // Methods.
         static async Task Main(string[] args)
@@ -104,8 +106,6 @@ namespace Etherna.MDBeeDfs
             Console.WriteLine("Syncing database name:");
             databaseName = ReadStringIfEmpty(databaseName);
 
-            Console.WriteLine();
-
             // Create Dfs client.
             var cookieContainer = new CookieContainer();
             var handler = new HttpClientHandler() { CookieContainer = cookieContainer } ;
@@ -114,11 +114,13 @@ namespace Etherna.MDBeeDfs
             var dfsClient = new DfsClient(httpClient);
 
             // Login user with Dfs.
-            if ((await dfsClient.UserPresentAsync(username)).Present)
+            if ((await dfsClient.UserPresentAsync(username)).Result.Present)
             {
+                // Login.
                 var response = await dfsClient.UserLoginAsync(username, password);
                 TrySetCookies(dfsUrl, cookieContainer, response.Headers.ToDictionary(p => p.Key, p => p.Value));
 
+                Console.WriteLine();
                 if (response.StatusCode == 200)
                 {
                     Console.WriteLine($"User {username} loggedin");
@@ -131,23 +133,60 @@ namespace Etherna.MDBeeDfs
             }
             else
             {
+                // Signup.
                 var response = await dfsClient.UserSignupAsync(
                     username,
                     password);
+                TrySetCookies(dfsUrl, cookieContainer, response.Headers.ToDictionary(p => p.Key, p => p.Value));
+                var result = response.Result;
 
-                Console.WriteLine($"New user {username} created with address {response.Address}.");
+                Console.WriteLine();
+                Console.WriteLine($"New user {username} created with address {result.Address}.");
                 Console.WriteLine("Please store the following 12 words safely");
                 Console.WriteLine("=============== Mnemonic ==========================");
-                Console.WriteLine(response.Mnemonic);
+                Console.WriteLine(result.Mnemonic);
                 Console.WriteLine("=============== Mnemonic ==========================");
             }
 
-            // Create pod for db.
-            var newPodResponse = await dfsClient.PodNewAsync(databaseName, password);
-            //***TODO
+            // Create pod for db, if doesn't exist, and open.
+            var existingPods = (await dfsClient.PodLsAsync()).Result;
+            if (!existingPods.Pod_name.Contains(databaseName))
+            {
+                var newPodResponse = await dfsClient.PodNewAsync(databaseName, password);
+
+                Console.WriteLine();
+                Console.WriteLine($"Created pod {databaseName}");
+            }
+            var podOpenResponse = await dfsClient.PodOpenAsync(databaseName, password);
+
+            // Create "db_info" table, if doesn't exist.
+            var existingTables = (await dfsClient.KvLsAsync()).Result;
+            if (existingTables.Tables is null ||
+                !existingTables.Tables.Any(t => t.Name == DbInfoTableName))
+            {
+                var newTableResponse = await dfsClient.KvNewAsync(DbInfoTableName, IndexType.String);
+
+                Console.WriteLine();
+                Console.WriteLine($"Created table {DbInfoTableName}");
+            }
+            var kvOpenResponse = await dfsClient.KvOpenAsync(DbInfoTableName);
+
+            // Get current sync state.
+            var lastOpLog = -1;
+            try
+            {
+                var lastOpLogResponse = await dfsClient.KvEntryGetAsync(DbInfoTableName, LastOpLogKeyName);
+                lastOpLog = int.Parse(Base64Decode(lastOpLogResponse.Result.Values));
+            }
+            catch { }
+
+            Console.WriteLine();
+            Console.WriteLine(lastOpLog >= 0 ?
+                $"Last synced oplog: {lastOpLog}" :
+                "No oplog found, start synchronization from scratch");
 
             // Start sync process.
-            var syncProcessor = new MongoDBSyncProcessor(mongoUrl!, databaseName!);
+            var syncProcessor = new MongoDBSyncProcessor(mongoUrl, databaseName, lastOpLog);
             syncProcessor.OnDocumentInserted += OnDocumentInserted;
             syncProcessor.OnDocumentRemoved += OnDocumentRemoved;
             syncProcessor.OnDocumentReplaced += OnDocumentReplaced;
@@ -172,6 +211,18 @@ namespace Etherna.MDBeeDfs
         }
 
         // Private helpers.
+        public static string Base64Decode(string base64EncodedData)
+        {
+            var base64EncodedBytes = Convert.FromBase64String(base64EncodedData);
+            return Encoding.UTF8.GetString(base64EncodedBytes);
+        }
+
+        public static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
+            return Convert.ToBase64String(plainTextBytes);
+        }
+
         private static string GenerateMnemonic()
         {
             // Load words.

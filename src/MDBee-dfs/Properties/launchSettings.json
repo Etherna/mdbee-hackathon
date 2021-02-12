@@ -2,7 +2,7 @@
   "profiles": {
     "MDBee-dfs": {
       "commandName": "Project",
-      "commandLineArgs": "-u ciaone -p password -m mongoUrl -f http://localhost:9090/v0/ -d dbName"
+      "commandLineArgs": "-u userTest -p pswTest -m mongoUrl -f http://localhost:9090/v0/ -d dbTest"
     }
   }
 }

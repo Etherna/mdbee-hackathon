@@ -7,7 +7,7 @@ namespace Etherna.MongoDBSyncer
     {
 
         // Constructors.
-        public MongoDBSyncProcessor(string mongoUrl, string databaseName)
+        public MongoDBSyncProcessor(string mongoUrl, string databaseName, int lastOpLog)
         {
             MongoUrl = mongoUrl;
             DatabaseName = databaseName;
