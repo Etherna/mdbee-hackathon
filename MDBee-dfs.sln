@@ -31,7 +31,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fairOS-dfs", "fairOS-dfs", 
 		devenv\fairOS-dfs\Dockerfile = devenv\fairOS-dfs\Dockerfile
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HackathonDemo", "src\HackathonDemo\HackathonDemo.csproj", "{750F8453-6DE9-429E-B778-B0533C80F083}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HackathonDemo", "src\HackathonDemo\HackathonDemo.csproj", "{750F8453-6DE9-429E-B778-B0533C80F083}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

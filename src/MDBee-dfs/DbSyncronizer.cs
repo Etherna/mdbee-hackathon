@@ -118,7 +118,6 @@ namespace Etherna.MDBeeDfs
             var syncProcessor = new SyncProcessor(mongoUrl, databaseName, lastOplogTimestamp);
             syncProcessor.OnDocumentInserted += OnDocumentInserted;
             syncProcessor.OnDocumentDeleted += OnDocumentDeleted;
-            syncProcessor.OnDocumentUpdated += OnDocumentUpdated;
             syncProcessor.OnRebuildPod += OnRebuildPod;
 
             await syncProcessor.StartAsync();
@@ -127,7 +126,7 @@ namespace Etherna.MDBeeDfs
         // Event handlers.
         private void OnDocumentInserted(object? sender, OnDocumentInsertedEventArgs e) => Task.Run(async () =>
         {
-            // Create document db if doesn't exist, and open it.
+            // Create document db if doesn't exist.
             if (!existingDocumentDbs.Contains(e.CollectionName))
             {
                 await dfsClient.DocNewAsync(e.CollectionName);
@@ -136,6 +135,7 @@ namespace Etherna.MDBeeDfs
                 Console.WriteLine($"Created documentDb {e.CollectionName}");
             }
 
+            // Open document db.
             //use try-catch because API rise error if already opened
             try { await dfsClient.DocOpenAsync(e.CollectionName); }
             catch { }
@@ -159,29 +159,24 @@ namespace Etherna.MDBeeDfs
             if (e.OplogTimestamp is not null)
                 await UpdateLastOplogTimestamp(e.OplogTimestamp.Value);
 
-            Console.WriteLine($"Inserted document with key {e.DocumentKey.Value} in documentDb {e.CollectionName}");
+            Console.WriteLine($"Inserted document with key {e.DocumentKey.Value} in {e.CollectionName}");
         }).Wait();
 
         private void OnDocumentDeleted(object? sender, OnDocumentDeletedEventArgs e) => Task.Run(async () =>
         {
+            // Open document db.
+            //use try-catch because API rise error if already opened
+            try { await dfsClient.DocOpenAsync(e.CollectionName); }
+            catch { }
+
             // Remove document.
-            //***TO-DO
+            try { await dfsClient.DocEntryDelAsync(e.CollectionName, e.DocumentKey.Value.ToString()!); }
+            catch { }
 
             // Update sync state.
             await UpdateLastOplogTimestamp(e.OplogTimestamp.Value);
 
-            //Console.WriteLine($"Removed document with key {}");
-        }).Wait();
-
-        private void OnDocumentUpdated(object? sender, OnDocumentUpdatedEventArgs e) => Task.Run(async () =>
-        {
-            // Replace document.
-            //***TO-DO
-
-            // Update sync state.
-            await UpdateLastOplogTimestamp(e.OplogTimestamp.Value);
-
-            //Console.WriteLine($"Replaced document with key {}");
+            Console.WriteLine($"Removed document with key {e.DocumentKey.Value} from {e.CollectionName}");
         }).Wait();
 
         private void OnRebuildPod(object? sender, OnRebuildPodEventArgs e) => Task.Run(async () =>

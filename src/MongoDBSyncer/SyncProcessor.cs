@@ -55,7 +55,6 @@ namespace Etherna.MongoDBSyncer
         // Events.
         public event EventHandler<OnDocumentInsertedEventArgs>? OnDocumentInserted;
         public event EventHandler<OnDocumentDeletedEventArgs>? OnDocumentDeleted;
-        public event EventHandler<OnDocumentUpdatedEventArgs>? OnDocumentUpdated;
         public event EventHandler<OnRebuildPodEventArgs>? OnRebuildPod;
 
         // Methods.
@@ -119,13 +118,6 @@ namespace Etherna.MongoDBSyncer
                                     oplog.ClusterTime));
                             break;
                         case ChangeStreamOperationType.Update:
-                            OnDocumentUpdated?.Invoke(this,
-                                new OnDocumentUpdatedEventArgs(
-                                    DatabaseName,
-                                    oplog.CollectionNamespace.CollectionName,
-                                    oplog.DocumentKey.Elements.First(),
-                                    oplog.FullDocument,
-                                    oplog.ClusterTime));
                             break;
                         case ChangeStreamOperationType.Replace: //TBD
                             break;

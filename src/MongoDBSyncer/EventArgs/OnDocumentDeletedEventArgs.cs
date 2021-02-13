@@ -21,18 +21,18 @@ namespace Etherna.MongoDBSyncer.EventArgs
         public OnDocumentDeletedEventArgs(
             string dbName,
             string collectionName,
-            BsonElement docId,
+            BsonElement documentKey,
             BsonTimestamp oplogTimestamp)
         {
             DbName = dbName;
             CollectionName = collectionName;
-            DocId = docId;
+            DocumentKey = documentKey;
             OplogTimestamp = oplogTimestamp;
         }
 
         public string DbName { get; }
         public string CollectionName { get; }
-        public BsonElement DocId { get; }
+        public BsonElement DocumentKey { get; }
         public BsonTimestamp OplogTimestamp { get; }
     }
 }
