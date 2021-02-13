@@ -16,6 +16,7 @@ using Etherna.FairOSDfsClient;
 using Etherna.MongoDBSyncer;
 using Etherna.MongoDBSyncer.EventArgs;
 using MongoDB.Bson;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -106,7 +107,6 @@ namespace Etherna.MDBeeDfs
             // Get sync state.
             var lastOplogTimestamp = await TryGetLastOplogTimestamp();
 
-            Console.WriteLine();
             Console.WriteLine(lastOplogTimestamp is not null ?
                 $"Last synced oplog: {lastOplogTimestamp}" :
                 "No oplog found, start synchronization from scratch");
@@ -117,8 +117,8 @@ namespace Etherna.MDBeeDfs
             // Start sync process.
             var syncProcessor = new SyncProcessor(mongoUrl, databaseName, lastOplogTimestamp);
             syncProcessor.OnDocumentInserted += OnDocumentInserted;
-            syncProcessor.OnDocumentRemoved += OnDocumentRemoved;
-            syncProcessor.OnDocumentReplaced += OnDocumentReplaced;
+            syncProcessor.OnDocumentDeleted += OnDocumentDeleted;
+            syncProcessor.OnDocumentUpdated += OnDocumentUpdated;
             syncProcessor.OnRebuildPod += OnRebuildPod;
 
             await syncProcessor.StartAsync();
@@ -127,24 +127,42 @@ namespace Etherna.MDBeeDfs
         // Event handlers.
         private void OnDocumentInserted(object? sender, OnDocumentInsertedEventArgs e) => Task.Run(async () =>
         {
+            // Create document db if doesn't exist, and open it.
+            if (!existingDocumentDbs.Contains(e.CollectionName))
+            {
+                await dfsClient.DocNewAsync(e.CollectionName);
+                existingDocumentDbs.Add(e.CollectionName);
 
+                Console.WriteLine($"Created documentDb {e.CollectionName}");
+            }
 
-            // Create document db if doesn't exist.
+            //use try-catch because API rise error if already opened
+            try { await dfsClient.DocOpenAsync(e.CollectionName); }
+            catch { }
 
-
-            await dfsClient.DocNewAsync("");
+            /*
+             * Adjust id name.
+             * MongoDB use "_id" as default id name, instead fairos-dfs use "id".
+             * For simplicity here I force to rename the id from "_id" into "id". 
+             */
+            var fixedBsonDocument = new BsonDocument(e.NewDocument.Elements.Select(
+                e => e.Name == "_id" ?
+                     new BsonElement("id", e.Value) :
+                     e));
 
             // Add document.
-            //***TO-DO
+            var objDocument = BsonTypeMapper.MapToDotNetValue(fixedBsonDocument);
+            var jsonDocument = JsonConvert.SerializeObject(objDocument);
+            await dfsClient.DocEntryPutAsync(e.CollectionName, jsonDocument);
 
             // Update sync state.
             if (e.OplogTimestamp is not null)
                 await UpdateLastOplogTimestamp(e.OplogTimestamp.Value);
 
-            Console.WriteLine($"Inserted document with key {e.DocumentKey}");
+            Console.WriteLine($"Inserted document with key {e.DocumentKey.Value} in documentDb {e.CollectionName}");
         }).Wait();
 
-        private void OnDocumentRemoved(object? sender, OnDocumentRemovedEventArgs e) => Task.Run(async () =>
+        private void OnDocumentDeleted(object? sender, OnDocumentDeletedEventArgs e) => Task.Run(async () =>
         {
             // Remove document.
             //***TO-DO
@@ -155,7 +173,7 @@ namespace Etherna.MDBeeDfs
             //Console.WriteLine($"Removed document with key {}");
         }).Wait();
 
-        private void OnDocumentReplaced(object? sender, OnDocumentReplacedEventArgs e) => Task.Run(async () =>
+        private void OnDocumentUpdated(object? sender, OnDocumentUpdatedEventArgs e) => Task.Run(async () =>
         {
             // Replace document.
             //***TO-DO
@@ -193,13 +211,13 @@ namespace Etherna.MDBeeDfs
         }).Wait();
 
         // Private helpers.
-        public static string Base64Decode(string base64EncodedData)
+        private static string Base64Decode(string base64EncodedData)
         {
             var base64EncodedBytes = Convert.FromBase64String(base64EncodedData);
             return Encoding.UTF8.GetString(base64EncodedBytes);
         }
 
-        public static string Base64Encode(string plainText)
+        private static string Base64Encode(string plainText)
         {
             var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
             return Convert.ToBase64String(plainTextBytes);

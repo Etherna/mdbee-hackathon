@@ -13,29 +13,26 @@
 //   limitations under the License.
 
 using MongoDB.Bson;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Etherna.MongoDBSyncer.EventArgs
 {
-    public class OnDocumentReplacedEventArgs
+    public class OnDocumentDeletedEventArgs
     {
-        public OnDocumentReplacedEventArgs(
+        public OnDocumentDeletedEventArgs(
             string dbName,
+            string collectionName,
             BsonElement docId,
-            BsonDocument newDocument,
             BsonTimestamp oplogTimestamp)
         {
             DbName = dbName;
+            CollectionName = collectionName;
             DocId = docId;
-            NewDocument = newDocument;
             OplogTimestamp = oplogTimestamp;
         }
 
         public string DbName { get; }
+        public string CollectionName { get; }
         public BsonElement DocId { get; }
-        public BsonDocument NewDocument { get; }
         public BsonTimestamp OplogTimestamp { get; }
     }
 }

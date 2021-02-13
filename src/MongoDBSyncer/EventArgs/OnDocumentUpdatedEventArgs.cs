@@ -16,20 +16,26 @@ using MongoDB.Bson;
 
 namespace Etherna.MongoDBSyncer.EventArgs
 {
-    public class OnDocumentRemovedEventArgs
+    public class OnDocumentUpdatedEventArgs
     {
-        public OnDocumentRemovedEventArgs(
+        public OnDocumentUpdatedEventArgs(
             string dbName,
+            string collectionName,
             BsonElement docId,
+            BsonDocument newDocument,
             BsonTimestamp oplogTimestamp)
         {
             DbName = dbName;
+            CollectionName = collectionName;
             DocId = docId;
+            NewDocument = newDocument;
             OplogTimestamp = oplogTimestamp;
         }
 
         public string DbName { get; }
+        public string CollectionName { get; }
         public BsonElement DocId { get; }
+        public BsonDocument NewDocument { get; }
         public BsonTimestamp OplogTimestamp { get; }
     }
 }

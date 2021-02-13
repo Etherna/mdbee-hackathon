@@ -54,8 +54,8 @@ namespace Etherna.MongoDBSyncer
 
         // Events.
         public event EventHandler<OnDocumentInsertedEventArgs>? OnDocumentInserted;
-        public event EventHandler<OnDocumentRemovedEventArgs>? OnDocumentRemoved;
-        public event EventHandler<OnDocumentReplacedEventArgs>? OnDocumentReplaced;
+        public event EventHandler<OnDocumentDeletedEventArgs>? OnDocumentDeleted;
+        public event EventHandler<OnDocumentUpdatedEventArgs>? OnDocumentUpdated;
         public event EventHandler<OnRebuildPodEventArgs>? OnRebuildPod;
 
         // Methods.
@@ -102,6 +102,7 @@ namespace Etherna.MongoDBSyncer
             }
 
             // Process oplogs.
+            Console.WriteLine("Starting to apply oplogs");
             while (true)
             {
                 while (oplogFetcher.OplogBuffer.TryDequeue(out var oplog))
@@ -118,19 +119,31 @@ namespace Etherna.MongoDBSyncer
                                     oplog.ClusterTime));
                             break;
                         case ChangeStreamOperationType.Update:
+                            OnDocumentUpdated?.Invoke(this,
+                                new OnDocumentUpdatedEventArgs(
+                                    DatabaseName,
+                                    oplog.CollectionNamespace.CollectionName,
+                                    oplog.DocumentKey.Elements.First(),
+                                    oplog.FullDocument,
+                                    oplog.ClusterTime));
                             break;
-                        case ChangeStreamOperationType.Replace:
+                        case ChangeStreamOperationType.Replace: //TBD
                             break;
                         case ChangeStreamOperationType.Delete:
+                            OnDocumentDeleted?.Invoke(this,
+                                new OnDocumentDeletedEventArgs(
+                                    DatabaseName, oplog.CollectionNamespace.CollectionName,
+                                    oplog.DocumentKey.Elements.First(),
+                                    oplog.ClusterTime));
                             break;
-                        case ChangeStreamOperationType.Invalidate:
+                        case ChangeStreamOperationType.Invalidate: //TBD
                             break;
-                        case ChangeStreamOperationType.Rename:
+                        case ChangeStreamOperationType.Rename: //rename a collection.
                             break;
-                        case ChangeStreamOperationType.Drop:
+                        case ChangeStreamOperationType.Drop: //drop a collection.
                             break;
                         default:
-                            break;
+                            throw new InvalidOperationException();
                     }
                 }
 
