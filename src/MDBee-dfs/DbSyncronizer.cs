@@ -31,12 +31,13 @@ namespace Etherna.MDBeeDfs
     {
         // Consts.
         private const string DbInfoTableName = "db_info";
-        private const string LastOpLogKeyName = "last_oplog";
+        private const string LastOplogKeyName = "last_oplog";
 
         // Fields.
         private readonly CookieContainer cookieContainer = new();
         private readonly DfsClient dfsClient;
         private readonly string dfsUrl;
+        private readonly List<string> existingDocumentDbs = new();
         private readonly HttpClient httpClient;
         private readonly string mongoUrl;
         private readonly string databaseName;
@@ -67,7 +68,7 @@ namespace Etherna.MDBeeDfs
         // Methods.
         public async Task StartAsync()
         {
-            // Login user with Dfs.
+            // Verify if user exists with Dfs.
             if ((await dfsClient.UserPresentAsync(username)).Result.Present)
             {
                 // Login.
@@ -102,60 +103,45 @@ namespace Etherna.MDBeeDfs
                 Console.WriteLine("=============== Mnemonic ==========================");
             }
 
-            // Create pod for db, if doesn't exist, and open.
-            var existingPods = (await dfsClient.PodLsAsync()).Result;
-            if (!existingPods.Pod_name.Contains(databaseName))
-            {
-                var newPodResponse = await dfsClient.PodNewAsync(databaseName, password);
-
-                Console.WriteLine();
-                Console.WriteLine($"Created pod {databaseName}");
-            }
-            var podOpenResponse = await dfsClient.PodOpenAsync(databaseName, password);
-
-            // Create "db_info" table, if doesn't exist.
-            var existingTables = (await dfsClient.KvLsAsync()).Result;
-            if (existingTables.Tables is null ||
-                !existingTables.Tables.Any(t => t.Name == DbInfoTableName))
-            {
-                var newTableResponse = await dfsClient.KvNewAsync(DbInfoTableName, IndexType.String);
-
-                Console.WriteLine();
-                Console.WriteLine($"Created table {DbInfoTableName}");
-            }
-            var kvOpenResponse = await dfsClient.KvOpenAsync(DbInfoTableName);
-
-            // Get current sync state.
-            BsonTimestamp? lastOpLogTimestamp = null;
-            try
-            {
-                var lastOpLogResponse = await dfsClient.KvEntryGetAsync(DbInfoTableName, LastOpLogKeyName);
-                lastOpLogTimestamp = new BsonTimestamp(long.Parse(Base64Decode(lastOpLogResponse.Result.Values)));
-            }
-            catch { }
+            // Get sync state.
+            var lastOplogTimestamp = await TryGetLastOplogTimestamp();
 
             Console.WriteLine();
-            Console.WriteLine(lastOpLogTimestamp is not null ?
-                $"Last synced oplog: {lastOpLogTimestamp}" :
+            Console.WriteLine(lastOplogTimestamp is not null ?
+                $"Last synced oplog: {lastOplogTimestamp}" :
                 "No oplog found, start synchronization from scratch");
 
+            // Get existing document dbs.
+            existingDocumentDbs.AddRange(await GetExistingDocumentDbNamesAsync());
+
             // Start sync process.
-            var syncProcessor = new MongoDBSyncProcessor(mongoUrl, databaseName, lastOpLogTimestamp);
+            var syncProcessor = new SyncProcessor(mongoUrl, databaseName, lastOplogTimestamp);
             syncProcessor.OnDocumentInserted += OnDocumentInserted;
             syncProcessor.OnDocumentRemoved += OnDocumentRemoved;
             syncProcessor.OnDocumentReplaced += OnDocumentReplaced;
+            syncProcessor.OnRebuildPod += OnRebuildPod;
 
-            syncProcessor.StartSync();
+            await syncProcessor.StartAsync();
         }
 
         // Event handlers.
         private void OnDocumentInserted(object? sender, OnDocumentInsertedEventArgs e) => Task.Run(async () =>
         {
+
+
+            // Create document db if doesn't exist.
+
+
+            await dfsClient.DocNewAsync("");
+
             // Add document.
             //***TO-DO
 
             // Update sync state.
-            await UpdateOpLogNumber(e.OpLogTimestamp.Value);
+            if (e.OplogTimestamp is not null)
+                await UpdateLastOplogTimestamp(e.OplogTimestamp.Value);
+
+            Console.WriteLine($"Inserted document with key {e.DocumentKey}");
         }).Wait();
 
         private void OnDocumentRemoved(object? sender, OnDocumentRemovedEventArgs e) => Task.Run(async () =>
@@ -164,7 +150,9 @@ namespace Etherna.MDBeeDfs
             //***TO-DO
 
             // Update sync state.
-            await UpdateOpLogNumber(e.OpLogTimestamp.Value);
+            await UpdateLastOplogTimestamp(e.OplogTimestamp.Value);
+
+            //Console.WriteLine($"Removed document with key {}");
         }).Wait();
 
         private void OnDocumentReplaced(object? sender, OnDocumentReplacedEventArgs e) => Task.Run(async () =>
@@ -173,7 +161,35 @@ namespace Etherna.MDBeeDfs
             //***TO-DO
 
             // Update sync state.
-            await UpdateOpLogNumber(e.OpLogTimestamp.Value);
+            await UpdateLastOplogTimestamp(e.OplogTimestamp.Value);
+
+            //Console.WriteLine($"Replaced document with key {}");
+        }).Wait();
+
+        private void OnRebuildPod(object? sender, OnRebuildPodEventArgs e) => Task.Run(async () =>
+        {
+            // Rebuild pod.
+            //delete old
+            var existingPods = (await dfsClient.PodLsAsync()).Result;
+            if (existingPods.Pod_name.Contains(databaseName))
+            {
+                //await dfsClient.PodDeleteAsync(databaseName);
+                throw new NotImplementedException("PodDelete have issues");
+            }
+
+            //create new
+            var newPodResponse = await dfsClient.PodNewAsync(databaseName, password);
+
+            Console.WriteLine($"Created new pod {databaseName}");
+
+            // Populate it.
+            //create db_info table
+            await dfsClient.KvNewAsync(DbInfoTableName, IndexType.String);
+
+            //init sync state.
+            await UpdateLastOplogTimestamp(0);
+
+            Console.WriteLine($"Created and initialized table {DbInfoTableName}");
         }).Wait();
 
         // Private helpers.
@@ -208,6 +224,44 @@ namespace Etherna.MDBeeDfs
             return mnemonic;
         }
 
+        private async Task<IEnumerable<string>> GetExistingDocumentDbNamesAsync()
+        {
+            var names = new List<string>();
+            try
+            {
+                // Try to open pod.
+                await dfsClient.PodOpenAsync(databaseName, password);
+
+                // Get names.
+                var docLsResponse = await dfsClient.DocLsAsync();
+                names.AddRange(docLsResponse.Result.Tables.Select(t => t.Name));
+            }
+            catch { }
+            return names;
+        }
+
+        private async Task<BsonTimestamp?> TryGetLastOplogTimestamp()
+        {
+            try
+            {
+                // Try to open pod.
+                await dfsClient.PodOpenAsync(databaseName, password);
+
+                // Open "db_info" table.
+                await dfsClient.KvOpenAsync(DbInfoTableName);
+
+                // Get current sync state.
+                BsonTimestamp? lastOplogTimestamp = null;
+                var lastOplogResponse = await dfsClient.KvEntryGetAsync(DbInfoTableName, LastOplogKeyName);
+                lastOplogTimestamp = new BsonTimestamp(long.Parse(Base64Decode(lastOplogResponse.Result.Values)));
+
+                return lastOplogTimestamp;
+            }
+            catch { }
+
+            return null;
+        }
+
         private void TrySetCookies(
             IDictionary<string, IEnumerable<string>> responseHeaders)
         {
@@ -226,10 +280,10 @@ namespace Etherna.MDBeeDfs
                 }
         }
 
-        private async Task UpdateOpLogNumber(long opLogNumber)
+        private async Task UpdateLastOplogTimestamp(long oplogNumber)
         {
             await dfsClient.KvOpenAsync(DbInfoTableName);
-            await dfsClient.KvEntryPutAsync(DbInfoTableName, LastOpLogKeyName, opLogNumber.ToString());
+            await dfsClient.KvEntryPutAsync(DbInfoTableName, LastOplogKeyName, oplogNumber.ToString());
         }
     }
 }

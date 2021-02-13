@@ -20,22 +20,20 @@ using System.Threading.Tasks;
 
 namespace Etherna.MongoDBSyncer
 {
-    public class OpLogReceiver
+    public class OplogFetcher
     {
         // Constructor.
-        public OpLogReceiver(
+        public OplogFetcher(
             IMongoDatabase database,
-            ConcurrentQueue<ChangeStreamDocument<BsonDocument>> opLogBuffer,
             BsonTimestamp? lastOplogTimestamp)
         {
             Database = database;
-            OpLogBuffer = opLogBuffer;
             LastOplogTimestamp = lastOplogTimestamp;
         }
 
         // Properties.
         public IMongoDatabase Database { get; }
-        public ConcurrentQueue<ChangeStreamDocument<BsonDocument>> OpLogBuffer { get; }
+        public ConcurrentQueue<ChangeStreamDocument<BsonDocument>> OplogBuffer { get; } = new();
         public BsonTimestamp? LastOplogTimestamp { get; }
 
         // Methods.
@@ -55,7 +53,7 @@ namespace Etherna.MongoDBSyncer
 
                 //enqueue documents
                 foreach (var changeDoc in cursor.Current)
-                    OpLogBuffer.Enqueue(changeDoc);
+                    OplogBuffer.Enqueue(changeDoc);
             }
         }
     }

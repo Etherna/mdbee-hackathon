@@ -25,17 +25,17 @@ namespace Etherna.MongoDBSyncer.EventArgs
             string dbName,
             BsonElement docId,
             BsonDocument newDocument,
-            BsonTimestamp opLogTimestamp)
+            BsonTimestamp oplogTimestamp)
         {
             DbName = dbName;
             DocId = docId;
             NewDocument = newDocument;
-            OpLogTimestamp = opLogTimestamp;
+            OplogTimestamp = oplogTimestamp;
         }
 
         public string DbName { get; }
         public BsonElement DocId { get; }
         public BsonDocument NewDocument { get; }
-        public BsonTimestamp OpLogTimestamp { get; }
+        public BsonTimestamp OplogTimestamp { get; }
     }
 }

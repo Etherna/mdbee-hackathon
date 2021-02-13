@@ -20,16 +20,22 @@ namespace Etherna.MongoDBSyncer.EventArgs
     {
         public OnDocumentInsertedEventArgs(
             string dbName,
+            string collectionName,
+            BsonElement documentKey,
             BsonDocument newDocument,
-            BsonTimestamp opLogTimestamp)
+            BsonTimestamp? oplogTimestamp)
         {
             DbName = dbName;
+            CollectionName = collectionName;
+            DocumentKey = documentKey;
             NewDocument = newDocument;
-            OpLogTimestamp = opLogTimestamp;
+            OplogTimestamp = oplogTimestamp;
         }
 
         public string DbName { get; }
+        public string CollectionName { get; }
+        public BsonElement DocumentKey { get; }
         public BsonDocument NewDocument { get; }
-        public BsonTimestamp OpLogTimestamp { get; }
+        public BsonTimestamp? OplogTimestamp { get; }
     }
 }

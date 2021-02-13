@@ -2,7 +2,7 @@
   "profiles": {
     "MDBee-dfs": {
       "commandName": "Project",
-      "commandLineArgs": "-u userTest -p pswTest -m mongoUrl -f http://localhost:9090/v0/ -d dbTest"
+      "commandLineArgs": "-u userTest -p pswTest -m mongodb://127.0.10.1:27017,127.0.10.2:27017,127.0.10.3:27017/?replicaSet=devrs -f http://localhost:9090/v0/ -d dbTest"
     }
   }
 }
