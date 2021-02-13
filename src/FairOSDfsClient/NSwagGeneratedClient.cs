@@ -9111,8 +9111,8 @@ namespace Etherna.FairOSDfsClient
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.4.0 (Newtonsoft.Json v12.0.0.0)")]
     public partial class Response123 
     {
-        [Newtonsoft.Json.JsonProperty("Tables", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.ICollection<Tables2> Tables { get; set; }= default!;
+        [Newtonsoft.Json.JsonProperty("Tables", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.ICollection<Tables2>? Tables { get; set; }= default!;
     
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
     

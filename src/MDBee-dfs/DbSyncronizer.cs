@@ -185,12 +185,12 @@ namespace Etherna.MDBeeDfs
             var existingPods = (await dfsClient.PodLsAsync()).Result;
             if (existingPods.Pod_name.Contains(databaseName))
             {
-                //await dfsClient.PodDeleteAsync(databaseName);
-                throw new NotImplementedException("PodDelete have issues");
+                //await dfsClient.PodDeleteAsync(databaseName); //disabled becasue PodDelete have issues
             }
 
             //create new
-            var newPodResponse = await dfsClient.PodNewAsync(databaseName, password);
+            try { await dfsClient.PodNewAsync(databaseName, password); }
+            catch { }
 
             Console.WriteLine($"Created new pod {databaseName}");
 

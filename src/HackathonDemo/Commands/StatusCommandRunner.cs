@@ -60,6 +60,10 @@ namespace Etherna.HackathonDemo.Commands
                 userLoggedIn = true;
             }
 
+            // Try to create pod.
+            try { await dfsClient.PodNewAsync(databaseName, password); }
+            catch { }
+
             // Try to open pod.
             try { await dfsClient.PodOpenAsync(databaseName, password); }
             catch { }
@@ -67,20 +71,21 @@ namespace Etherna.HackathonDemo.Commands
             // Get document dbs stats from dfs.
             var dfsDocDbsStats = new Dictionary<string, long>();
             var docLsResponse = await dfsClient.DocLsAsync();
-            foreach (var docDbName in docLsResponse.Result.Tables.Select(t => t.Name))
-            {
-                // Try to open document db.
-                try { await dfsClient.DocOpenAsync(docDbName); }
-                catch { }
+            if (docLsResponse.Result.Tables is not null)
+                foreach (var docDbName in docLsResponse.Result.Tables.Select(t => t.Name))
+                {
+                    // Try to open document db.
+                    try { await dfsClient.DocOpenAsync(docDbName); }
+                    catch { }
 
-                // Count documents.
-                var countResponse = await dfsClient.DocCountAsync(docDbName);
-                if (!long.TryParse(countResponse.Result.Message, out var totDocuments))
-                    continue;
+                    // Count documents.
+                    var countResponse = await dfsClient.DocCountAsync(docDbName);
+                    if (!long.TryParse(countResponse.Result.Message, out var totDocuments))
+                        continue;
 
-                // Add stats.
-                dfsDocDbsStats.Add(docDbName, totDocuments);
-            }
+                    // Add stats.
+                    dfsDocDbsStats.Add(docDbName, totDocuments);
+                }
 
             // Get collections stats from mongo.
             var mongoCollectionStats = new Dictionary<string, long>();
