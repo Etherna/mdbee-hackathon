@@ -1,4 +1,18 @@
-﻿using Etherna.HackathonDemo.Commands;
+﻿//   Copyright 2021 Etherna Sagl
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
+using Etherna.HackathonDemo.Commands;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,29 +24,27 @@ namespace Etherna.HackathonDemo
         // Consts.
         private const string HelpText =
             "Demo console commands:\n" +
-            "add <n.documents> <collection>\t- add n. new random documents\n" +
-            "status\t\t\t\t- print current sync status of mongo and dfs\n" +
-            "exit\t\t\t\t- exit the application\n" +
-            "help\t\t\t\t- print this help\n";
+            "insert <n.documents> <collection>\t- add n. new random documents\n" +
+            "delete <n.documents> <collection>\t- delete n. random documents\n" +
+            "status\t\t\t\t\t- print current sync status of mongo and dfs\n" +
+            "exit\t\t\t\t\t- exit the application\n" +
+            "help\t\t\t\t\t- print this help\n";
 
         // Fields.
-        private string username;
-        private string password;
-        private string dfsUrl;
-        private string mongoString;
-        private string databaseName;
-        private readonly AddCommandRunner addCommandRunner;
+        private readonly InsertCommandRunner insertCommandRunner;
+        private readonly DeleteCommandRunner deleteCommandRunner;
+        private readonly StatusCommandRunner statusCommandRunner;
+        private readonly string username;
+        private readonly string password;
 
         // Constructor.
         public DataConsole(string username, string password, string dfsUrl, string mongoString, string databaseName)
         {
+            insertCommandRunner = new InsertCommandRunner(mongoString, databaseName);
+            deleteCommandRunner = new DeleteCommandRunner(mongoString, databaseName);
+            statusCommandRunner = new StatusCommandRunner(dfsUrl, mongoString, databaseName);
             this.username = username;
             this.password = password;
-            this.dfsUrl = dfsUrl;
-            this.mongoString = mongoString;
-            this.databaseName = databaseName;
-
-            addCommandRunner = new AddCommandRunner(mongoString, databaseName);
         }
 
         // Methods.
@@ -51,8 +63,9 @@ namespace Etherna.HackathonDemo
                 var commandSegments = command!.Split(' ');
                 switch (commandSegments.First().ToLowerInvariant())
                 {
-                    case "add": await AddCommandRunner.RunAsync(commandSegments, mongoString, databaseName); break;
-                    case "status": await StatusCommandRunner.RunAsync(username, password, dfsUrl, mongoString, databaseName); break;
+                    case "insert": await insertCommandRunner.RunAsync(commandSegments); break;
+                    case "delete": await deleteCommandRunner.RunAsync(commandSegments); break;
+                    case "status": await statusCommandRunner.RunAsync(username, password); break;
                     case "exit": exit = true; break;
                     case "help": Console.Write(HelpText); break;
                     case "": break;

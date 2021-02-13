@@ -1,23 +1,37 @@
-﻿using MongoDB.Bson;
+﻿//   Copyright 2021 Etherna Sagl
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Etherna.HackathonDemo.Commands
 {
-    class AddCommandRunner
+    class InsertCommandRunner
     {
         // Fields.
-        private readonly MongoClient client;
         private readonly IMongoDatabase database;
         private readonly Random random = new();
 
         // Constructor.
-        public AddCommandRunner(string mongoString, string databaseName)
+        public InsertCommandRunner(string mongoString, string databaseName)
         {
             // Initialize MongoDB driver.
-            client = new MongoClient(mongoString);
+            var client = new MongoClient(mongoString);
             database = client.GetDatabase(databaseName);
         }
 
@@ -69,7 +83,10 @@ namespace Etherna.HackathonDemo.Commands
 
         private string GenerateRandomString(int length)
         {
-            return "rand";
+            var strBuilder = new StringBuilder();
+            for (int i = 0; i < length; i++)
+                strBuilder.Append((char)('a' + random.Next(26)));
+            return strBuilder.ToString();
         }
     }
 }

@@ -39,7 +39,6 @@ namespace Etherna.MDBeeDfs
         private readonly DfsClient dfsClient;
         private readonly string dfsUrl;
         private readonly List<string> existingDocumentDbs = new();
-        private readonly HttpClient httpClient;
         private readonly string mongoUrl;
         private readonly string databaseName;
         private readonly string password;
@@ -61,7 +60,7 @@ namespace Etherna.MDBeeDfs
 
             // Create Dfs client.
             var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
-            httpClient = new HttpClient(handler) { BaseAddress = new Uri(dfsUrl) };
+            var httpClient = new HttpClient(handler) { BaseAddress = new Uri(dfsUrl) };
 
             dfsClient = new DfsClient(httpClient);
         }
