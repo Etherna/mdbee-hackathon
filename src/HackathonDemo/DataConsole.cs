@@ -27,6 +27,7 @@ namespace Etherna.HackathonDemo
             "insert <n.documents> <collection>\t- add n. new random documents\n" +
             "delete <n.documents> <collection>\t- delete n. random documents\n" +
             "status\t\t\t\t\t- print current sync status of mongo and dfs\n" +
+            "clear\t\t\t\t\t- clear the screen\n" +
             "exit\t\t\t\t\t- exit the application\n" +
             "help\t\t\t\t\t- print this help\n";
 
@@ -66,6 +67,7 @@ namespace Etherna.HackathonDemo
                     case "insert": await insertCommandRunner.RunAsync(commandSegments); break;
                     case "delete": await deleteCommandRunner.RunAsync(commandSegments); break;
                     case "status": await statusCommandRunner.RunAsync(username, password); break;
+                    case "clear": Console.Clear(); break;
                     case "exit": exit = true; break;
                     case "help": Console.Write(HelpText); break;
                     case "": break;
