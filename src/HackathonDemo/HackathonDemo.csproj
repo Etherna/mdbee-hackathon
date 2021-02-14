@@ -11,65 +11,52 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Splash\01.txt" />
+    <None Remove="Resources\Splash\02.txt" />
+    <None Remove="Resources\Splash\03.txt" />
+    <None Remove="Resources\Splash\04.txt" />
+    <None Remove="Resources\Splash\05.txt" />
+    <None Remove="Resources\Splash\06.txt" />
+    <None Remove="Resources\Splash\07.txt" />
+    <None Remove="Resources\Splash\08.txt" />
+    <None Remove="Resources\Splash\09.txt" />
+    <None Remove="Resources\Splash\10.txt" />
+    <None Remove="Resources\Splash\11.txt" />
+    <None Remove="Resources\Splash\12.txt" />
+    <None Remove="Resources\Splash\13.txt" />
+    <None Remove="Resources\Splash\14.txt" />
+    <None Remove="Resources\Splash\15.txt" />
+    <None Remove="Resources\Splash\16.txt" />
+    <None Remove="Resources\Splash\17.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Splash\01.txt" />
+    <EmbeddedResource Include="Resources\Splash\02.txt" />
+    <EmbeddedResource Include="Resources\Splash\03.txt" />
+    <EmbeddedResource Include="Resources\Splash\04.txt" />
+    <EmbeddedResource Include="Resources\Splash\05.txt" />
+    <EmbeddedResource Include="Resources\Splash\06.txt" />
+    <EmbeddedResource Include="Resources\Splash\07.txt" />
+    <EmbeddedResource Include="Resources\Splash\08.txt" />
+    <EmbeddedResource Include="Resources\Splash\09.txt" />
+    <EmbeddedResource Include="Resources\Splash\10.txt" />
+    <EmbeddedResource Include="Resources\Splash\11.txt" />
+    <EmbeddedResource Include="Resources\Splash\12.txt" />
+    <EmbeddedResource Include="Resources\Splash\13.txt" />
+    <EmbeddedResource Include="Resources\Splash\14.txt" />
+    <EmbeddedResource Include="Resources\Splash\15.txt" />
+    <EmbeddedResource Include="Resources\Splash\16.txt" />
+    <EmbeddedResource Include="Resources\Splash\17.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FairOSDfsClient\FairOSDfsClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="5.0.3" />
     <PackageReference Include="MongoDB.Driver" Version="2.11.6" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Resources\Splash\01.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\10.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\11.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\12.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\13.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\14.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\15.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\16.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\17.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\02.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\03.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\04.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\05.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\06.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\07.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\08.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Splash\09.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

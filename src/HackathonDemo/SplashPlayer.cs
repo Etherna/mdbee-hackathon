@@ -12,9 +12,12 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+using Microsoft.Extensions.FileProviders;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Etherna.HackathonDemo
@@ -23,35 +26,41 @@ namespace Etherna.HackathonDemo
     {
         public static async Task PlayAsync(int playTime, int stopTime)
         {
-            /* Using try/catch for avoid a crash if frame files are not found. */
-            try
+            // Load frames.
+            var frames = new List<List<string>>();
+
+            var embeddedProvider = new EmbeddedFileProvider(Assembly.GetExecutingAssembly(), "Etherna.HackathonDemo.Resources.Splash");
+            foreach (var fileInfo in embeddedProvider.GetDirectoryContents("").OrderBy(f => f.Name))
             {
-                // Load frames.
-                var frameFiles = Directory.GetFiles(@"Resources\Splash");
-                var frames = frameFiles.Select(ff => File.ReadLines(ff));
+                var frame = new List<string>();
 
-                // Draw frames.
-                var timePerFrame = playTime / frames.Count();
-                Console.Clear();
-                foreach (var frame in frames)
+                var reader = new StreamReader(fileInfo.CreateReadStream());
+                while (!reader.EndOfStream)
+                    frame.Add(reader.ReadLine()!);
+
+                frames.Add(frame);
+            }
+
+            // Draw frames.
+            var timePerFrame = playTime / frames.Count();
+            Console.Clear();
+            foreach (var frame in frames)
+            {
+                Console.CursorTop = 0;
+                Console.CursorLeft = 0;
+                foreach (var line in frame)
                 {
-                    Console.CursorTop = 0;
+                    Console.CursorTop++;
                     Console.CursorLeft = 0;
-                    foreach (var line in frame)
-                    {
-                        Console.CursorTop++;
-                        Console.CursorLeft = 0;
 
-                        Console.Write(line);
-                    }
-
-                    await Task.Delay(timePerFrame);
+                    Console.Write(line);
                 }
 
-                // Pause.
-                await Task.Delay(stopTime);
+                await Task.Delay(timePerFrame);
             }
-            catch { }
+
+            // Pause.
+            await Task.Delay(stopTime);
         }
     }
 }
