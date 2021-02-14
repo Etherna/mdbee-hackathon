@@ -54,12 +54,44 @@ Follow this guide: https://docs.ethswarm.org/docs/installation/docker#docker-com
 
 ## Project Build
 
-TO-DO
+Install .Net5 SDK: [instructions](https://docs.microsoft.com/en-us/dotnet/core/install/)
+
+```
+dotnet build .\MDBee-dfs.sln
+```
 
 ## Usage
 
-TO-DO
+There are two main projects into this solution:
+
++ `HackathonDemo` is the interactive demo for presentation
++ `MDBee-dfs` is the synchronization tool
+
+Both can be executed with `-h` parameter for print the help.
 
 ## How it works
 
-TO-DO
+This tool maps one mongo database with one dfs pod, and all internal collections of mongo with as many related documentDbs of dfs:
+
+```
+MongoDB database   <->  Dfs pod
++ collection A     <->  + documentDB A
++ collection B     <->  + documentDB B
++ collection C     <->  + documentDB C
+                   ...  
+```
+
+`HackathonDemo` application can connect to an instance of FairOS-dfs and an instance of MongoDB. For demo scope, at first it tries to login with provided credentials on dfs. If the user doesn't exist, creates it.  
+It also tries to open, or create, a pod with the given database name to sync.  
+
+The demo app can:
++ Print status of the observed dfs pod and of the observed mongo database
++ Insert new random documents into any collection of mongo database
++ Remove random documents from any collection of mongo database
+
+`MDBee-dfs` is the sync tool. Like the demo application, it takes dfs and mongo's connecting params and credentials. If a dfs user doesn't exist, it creates one.  
+It starts to look at present dfs situation. The sync status is stored into a `kv` archive. If these information are not present, it starts a new sync from scratch, otherwise it tries to resume from last processed instructions.
+
+The synchronization protocol is similar to the one implemented by MongoDB itself for keep synced nodes of a replica set. It uses `oplogs` from nodes, and implements also a similar initial sync protocol ([Mongo's official docs](https://github.com/mongodb/mongo/blob/master/src/mongo/db/repl/README.md#initial-sync)). A sync from scratch starts listening and buffering any occurring new `oplog`. So it starts a full copy of all documents from all collections of observed db. When the copy is completed, all buffered oplogs are applied. When the buffer is empty, the initial sync is completed.
+
+In any moment, any new operation on mongo's db is listen by the tool and buffered with its oplog. Any buffered oplog will be replicated when possibile on dfs' pod.
